@@ -2,21 +2,30 @@ module electras::electras;
 
 use std::string;
 use sui::event;
+use sui::table;
 use sui::coin::TreasuryCap;
-use sui::token;
-use sui::tx_context;
+use sui::coin::Coin;
+use sui::sui::SUI;
+use sui::transfer;
+use std::bcs;
+use sui::object::{UID, uid_to_inner};
+use sui::dynamic_object_field as dof;
 use sui::table::{Table, new, add, borrow_mut};
-use sui::crypto::{verify_signature, PublicKey, Signature};
 use sui::ed25519::ed25519_verify;
 
-public struct ELECTRICITY has key, store {}
+public struct ELECTRICITY has key, store {
+    id: UID,
+}
+
+const EInvalidAttestation: u64 = 1;
+const EAmountIncorrect: u64 = 2;
+const ENotProducer: u64 = 3;
 
 /// A receipt for redeemed electricity
 public struct ElectricityReceipt has key, store {
-    id: object::ID,
+    id: UID,
     amount: u64,
 }
-
 
 public struct UserMeter has key, store {
     id: UID,
@@ -35,6 +44,7 @@ public struct MeterAttestation has store {
 }
 
 public struct AttestationRegistry has key {
+    id: UID,
     attestations: Table<vector<u8>, MeterAttestation>,
 }
 
@@ -58,28 +68,30 @@ public struct FraudRegistry has key {
     reports: Table<ID, vector<FraudFlag>>,
 }
 
-public struct Listing has store {
-    token_id: ID,
+public struct Listing has key, store {
+    id: UID,
     price: u64,
     seller: address,
 }
 
-public struct Marketplace has store {
+public struct Marketplace<phantom SUI> has store {
     items: Table<ID, Listing>,
     seller_address: address,
     token_quantity: u64,
     price_per_token: u64,
     expiry_time: u64,
+    payments: Table<address, Coin<SUI>>,
 }
 
 public struct Escrow has key, store {
-    id: ID,
+    id: UID,
     buyer: address,
     seller: address,
     status: u8,
 }
 
 public struct ProducerRegistry has key {
+    id: UID,
     producers: Table<address, bool>,
 }
 
@@ -115,89 +127,134 @@ public struct FraudAlertEvent has copy, drop {
     timestamp: u64,    
 }
 
-public fun mint_electricity(amount: u64, ctx: &mut TxContext): Token<ELECTRICITY> {
-    token::mint<ELECTRICITY>(amount, ctx)
+public fun mint_electricity(cap: &mut TreasuryCap<ELECTRICITY>, amount: u64, ctx: &mut TxContext): Coin<ELECTRICITY> {
+    sui::coin::mint<ELECTRICITY>(cap, amount, ctx)
 }
 
-public fun redeem_electricity(token: Token<ELECTRICITY>, ctx: &mut TxContext): ElectricityReceipt {
-    let amount = token::value(&token);
-    let _burned = token::spend(token, ctx);
+public fun redeem_electricity(cap: &mut TreasuryCap<ELECTRICITY>, token: Coin<ELECTRICITY>, ctx: &mut TxContext): ElectricityReceipt {
+    let amount = sui::coin::value(&token);
+    sui::coin::burn<ELECTRICITY>(cap, token);
     ElectricityReceipt { id: object::new(ctx), amount }
 }
-
 
 public fun initialize(platform_owner: address, oracle: address) {
 
 }
 
-public fun post_attestation(attestation: &MeterAttestation, signer: address, public_key: PublicKey): bool {
+fun serialize_attestation(user_meter: ID, kwh: u64, timestamp: u64): vector<u8> {
+    let mut bytes = vector::empty<u8>();
+
+    // Add user_meter (ID is 32 bytes)
+    let user_meter_bytes = object::id_to_bytes(&user_meter); // You may need to implement this
+    vector::append(&mut bytes, user_meter_bytes);
+
+    // Add kwh as bytes
+    let kwh_bytes = bcs::to_bytes(&kwh); 
+    vector::append(&mut bytes, kwh_bytes);
+
+    // Add timestamp as bytes
+    let timestamp_bytes = bcs::to_bytes(&timestamp);
+    vector::append(&mut bytes, timestamp_bytes);
+
+    bytes
+}
+
+public fun post_attestation(attestation: &MeterAttestation, signer: address, public_key: vector<u8>): bool {
+    let message = serialize_attestation(attestation.user_meter, attestation.kwh, attestation.timestamp);
     attestation.attestor == signer && ed25519_verify(
+        &public_key,
+        &message,
         &attestation.attestor_signature,
-        &attestation.user_meter,
-        &attestation.kwh,
-        &attestation.timestamp,
     )
 }
 
-public fun is_producer(producer_addr: address): bool{
+public fun is_producer(producer_registry: &ProducerRegistry, producer_addr: address, ctx: &mut TxContext): bool{
     let sender = ctx.sender();
-    let is_producer = table::contains(&producer_registry.producers, &sender);
+    let is_producer: bool = table::contains(&producer_registry.producers, producer_addr);
     assert!(is_producer, ENotProducer);
+    is_producer
 }
 
-public fun mint_by_attestation(attestor_hash: vector<u8>, ctx: &mut TxContext) {
+public fun attestation_is_valid(attestation: &MeterAttestation, public_key: vector<u8>, current_time: u64, ctx: &mut TxContext): bool {
+    let message = serialize_attestation(attestation.user_meter, attestation.kwh, attestation.timestamp);
 
-    let attestation = table::borrow(&registry.attestations, &attestor_hash);
-    assert!(attestation_is_valid(&attestation), EInvalidAttestation);
+    if (attestation.attestor == @0x0) {
+        return false
+    };
+
+    let is_valid = ed25519_verify(
+        &public_key,
+        &message,
+        &attestation.attestor_signature,
+    );
+
+    if (attestation.timestamp > current_time) {
+        return false
+    };
+    is_valid
+}
+
+public fun mint_by_attestation(registry: &AttestationRegistry, producer_registry: &ProducerRegistry, attestor_hash: vector<u8>, amount: u64, time: u64, ctx: &mut TxContext) {
+
+    let attestation = table::borrow(&registry.attestations, attestor_hash);
+    assert!(attestation_is_valid(attestation, attestor_hash, time, ctx), EInvalidAttestation);
 
     let sender = ctx.sender();
-    assert!(is_producer(sender), ENotProducer);
+    assert!(is_producer(producer_registry, sender, ctx), ENotProducer);
 
     let token = EnergyToken {
         id: object::new(ctx),
-        amount: u64,
+        amount: amount,
         producer: sender,
-        attestation: attestation,
+        attestation: *attestation,
         status: 0,
     };
-    move_to(sender, token);
+    let attestation_hash = token.attestation.attestor_signature;
+    let kwh = token.attestation.kwh;
+    let timestamp = token.attestation.timestamp;
 
-    event::emit(ProductionEvent {producer: sender, attestation_hash: token.attestation.attestor_signature, kwh: token.attestation.kwh, timestamp: token.attestation.timestamp,});
+    transfer::public_transfer(token, sender);
+
+    event::emit(ProductionEvent {producer: sender, attestation_hash, kwh, timestamp});
 }
 
-public fun list_tokens(marketplace: &mut Marketplace, token: ID, quantity: u64, price: u64, seller: address, ctx: &mut TxContext) {
-    let item_id: object::id(&item)
+public fun list_tokens<T: key + store>(marketplace: &mut Marketplace<SUI>, list_item: T, token: UID, quantity: u64, price: u64, seller: address, ctx: &mut TxContext) {
     let mut listing = Listing {
-        token_id: object::id(&token),
+        id: object::new(ctx),
         price: price,
         seller: seller,
     };
-    dof::add(&mut listing.token_id, true, it);
-    marketplace.items.add(item_id, listing);
-    event::emit(ListingEvent { token_id: ID, price: u64, seller: address,})
+    let token_ids = uid_to_inner(&token);
+    dof::add<bool, T>(&mut listing.id, true, list_item);
+    
+    marketplace.items.add(uid_to_inner(&token), listing);
+    event::emit(ListingEvent { token_id: token_ids, price: price, seller: seller})
 }
 
-public fun buy_listing_tokens<T: key + store, marketplace: &mut Marketplace>(buyer: address, listing_id: ID, payment: u64, ctx: &mut TxContext) {
-    let Listing { token_id, price, seller } = marketplace.items.remove()
+public fun buy_listing_tokens<T: key + store, SUI>(marketplace: &mut Marketplace<SUI>, buyer: address, listing_id: ID, payment: u64, paid: Coin<SUI>, ctx: &mut TxContext) {
+    let Listing { mut id, price, seller } = marketplace.items.remove(listing_id);
     assert!(price == paid.value(), EAmountIncorrect);
-    if (marketplace.payment.contains(seller)) {
-        marketplace.payment.borrow_mut(seller).join()
+
+    if (marketplace.payments.contains(seller)) {
+        marketplace.payments.borrow_mut(seller).join(paid)
     } else {
         marketplace.payments.add(seller, paid)
     };
-    let item = dof::remove(&mut id, true);
+    let item = dof::remove<bool, T>(&mut id, true);
     id.delete();
-    item
+    transfer::public_transfer(item, buyer);
 }
 
-
-public fun flag_fraud(registry: &mut FraudRegistry, object_id: ID, meter_id: string::String, reason: string::String, evidence_hash: vector<u8>, ctx: &mut TxContext) {
+public fun flag_fraud(registry: &mut FraudRegistry, user: address, object_id: ID, meter_id: string::String, reason: string::String, evidence_hash: vector<u8>, current_time: u64, ctx: &mut TxContext) {
     let  fraud_report = FraudFlag {
-        user: address,
+        user: user,
         meter_id,
         reason,
-        timestamp: ctx.timestamp(),
+        timestamp: current_time,
     };
+    let users = fraud_report.user;
+    let time = fraud_report.timestamp;
+
     if (registry.reports.contains(object_id)) {
         let reports = borrow_mut(&mut registry.reports, object_id);
         vector::push_back(reports, fraud_report);
@@ -206,13 +263,8 @@ public fun flag_fraud(registry: &mut FraudRegistry, object_id: ID, meter_id: str
         vector::push_back(&mut reports, fraud_report);
         add(&mut registry.reports, object_id, reports);
     };
-    event::emit(FraudAlertEvent { user: address, meter_id: string::String, reason: string::String, timestamp: u64 })
+    event::emit(FraudAlertEvent { user: users, meter_id: meter_id, reason: reason, timestamp: time })
 }
-
-public fun mintEnergyToken() {}
-
-
-public fun redeemEnergyToken() {}
 
 
 public fun transferEnergyToken() {}
