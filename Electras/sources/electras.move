@@ -6,11 +6,10 @@ use sui::table;
 use sui::coin::TreasuryCap;
 use sui::coin::Coin;
 use sui::sui::SUI;
-use sui::transfer;
 use std::bcs;
-use sui::object::{UID, uid_to_inner};
+use sui::object::{uid_to_inner};
 use sui::dynamic_object_field as dof;
-use sui::table::{Table, new, add, borrow_mut};
+use sui::table::{Table, add, borrow_mut};
 use sui::ed25519::ed25519_verify;
 
 public struct ELECTRICITY has key, store {
@@ -20,6 +19,7 @@ public struct ELECTRICITY has key, store {
 const EInvalidAttestation: u64 = 1;
 const EAmountIncorrect: u64 = 2;
 const ENotProducer: u64 = 3;
+const EUserAlreadyRegistered: u64 = 4;
 
 /// A receipt for redeemed electricity
 public struct ElectricityReceipt has key, store {
@@ -33,6 +33,15 @@ public struct UserMeter has key, store {
     user_address: address,
     unit_per_hour: u64,
     timestamp: u64,
+}
+
+public struct MeterRegistry has key, store {
+    id: UID,
+    initial_energy_units: u64,
+    total_users: u64,
+    owner: address,
+    user_meters: Table<u64, UserMeter>,
+    receipts: Table<u64, ElectricityReceipt>,
 }
 
 public struct MeterAttestation has store {
@@ -127,6 +136,60 @@ public struct FraudAlertEvent has copy, drop {
     timestamp: u64,    
 }
 
+public fun register_user(registry: &mut MeterRegistry, meter_id: string::String, unit_per_hour: u64, current_time: u64, user_address: address, key: u64, ctx: &mut TxContext) {
+    let id = object::new(ctx); 
+
+    let check_registered = table::contains(&registry.user_meters, key);
+    assert!(check_registered, EUserAlreadyRegistered);
+
+    registry.total_users = registry.total_users + 1;
+
+    //let meter_id = String::from_utf8();
+
+    let unit_per_hour = 0; 
+    let timestamp = current_time; 
+
+    let user_meter = UserMeter {
+        id,
+        meter_id,
+        user_address,
+        unit_per_hour,
+        timestamp: current_time, 
+    };
+
+    let receipt_id = object::new(ctx);
+    let initial_amount = 20;
+    let receipt = ElectricityReceipt {
+        id: receipt_id,
+        amount: initial_amount,
+    };
+
+    table::add(&mut registry.user_meters, key, user_meter);
+    table::add(&mut registry.receipts, key, receipt);
+}
+
+public fun init_registry(initial_energy_units: u64, ctx: &mut TxContext): MeterRegistry {
+    MeterRegistry {
+        id: object::new(ctx),
+        initial_energy_units,
+        total_users: 0,
+        owner: ctx.sender(),
+        receipts: table::new(ctx),
+        user_meters: table::new(ctx),
+    }
+}
+
+public fun set_initial_energy_units(registry: &mut MeterRegistry, new_units: u64, ctx: &TxContext) {
+    assert!(registry.owner == ctx.sender(), ENotProducer); 
+    registry.initial_energy_units = new_units;
+}
+
+/// Top up a user's energy units (only producer can call)
+public fun top_up_energy(registry: &mut MeterRegistry, amount: u64, ctx: &TxContext) {
+    assert!(registry.owner == ctx.sender(), ENotProducer); 
+    registry.initial_energy_units = registry.initial_energy_units + amount;
+}
+
 public fun mint_electricity(cap: &mut TreasuryCap<ELECTRICITY>, amount: u64, ctx: &mut TxContext): Coin<ELECTRICITY> {
     sui::coin::mint<ELECTRICITY>(cap, amount, ctx)
 }
@@ -137,39 +200,36 @@ public fun redeem_electricity(cap: &mut TreasuryCap<ELECTRICITY>, token: Coin<EL
     ElectricityReceipt { id: object::new(ctx), amount }
 }
 
-public fun initialize(platform_owner: address, oracle: address) {
-
-}
-
 fun serialize_attestation(user_meter: ID, kwh: u64, timestamp: u64): vector<u8> {
     let mut bytes = vector::empty<u8>();
 
     // Add user_meter (ID is 32 bytes)
-    let user_meter_bytes = object::id_to_bytes(&user_meter); // You may need to implement this
+    let user_meter_bytes = object::id_to_bytes(&user_meter);
     vector::append(&mut bytes, user_meter_bytes);
 
-    // Add kwh as bytes
     let kwh_bytes = bcs::to_bytes(&kwh); 
     vector::append(&mut bytes, kwh_bytes);
 
-    // Add timestamp as bytes
     let timestamp_bytes = bcs::to_bytes(&timestamp);
     vector::append(&mut bytes, timestamp_bytes);
 
     bytes
 }
 
-public fun post_attestation(attestation: &MeterAttestation, signer: address, public_key: vector<u8>): bool {
+public fun post_attestation(attestation: &MeterAttestation, token: UID, signer: address, energy: u64, time: u64, public_key: vector<u8>): bool {
     let message = serialize_attestation(attestation.user_meter, attestation.kwh, attestation.timestamp);
-    attestation.attestor == signer && ed25519_verify(
+    let is_valid = attestation.attestor == signer && ed25519_verify(
         &public_key,
         &message,
         &attestation.attestor_signature,
-    )
+    );
+    let obj_ids = uid_to_inner(&token);
+    event::emit(MeterAttestationEvent{ user_meter: obj_ids, attestor: signer, kwh: energy, timestamp: time});
+    object::delete(token);
+    is_valid
 }
 
 public fun is_producer(producer_registry: &ProducerRegistry, producer_addr: address, ctx: &mut TxContext): bool{
-    let sender = ctx.sender();
     let is_producer: bool = table::contains(&producer_registry.producers, producer_addr);
     assert!(is_producer, ENotProducer);
     is_producer
@@ -194,10 +254,11 @@ public fun attestation_is_valid(attestation: &MeterAttestation, public_key: vect
     is_valid
 }
 
-public fun mint_by_attestation(registry: &AttestationRegistry, producer_registry: &ProducerRegistry, attestor_hash: vector<u8>, amount: u64, time: u64, ctx: &mut TxContext) {
+#[allow(lint(self_transfer))]
+public fun mint_by_attestation(registry: &mut AttestationRegistry, producer_registry: &ProducerRegistry, attestor_hash: vector<u8>, amount: u64, time: u64, ctx: &mut TxContext) {
 
-    let attestation = table::borrow(&registry.attestations, attestor_hash);
-    assert!(attestation_is_valid(attestation, attestor_hash, time, ctx), EInvalidAttestation);
+    let attestation = table::remove(&mut registry.attestations, attestor_hash);
+    assert!(attestation_is_valid(&attestation, attestor_hash, time, ctx), EInvalidAttestation);
 
     let sender = ctx.sender();
     assert!(is_producer(producer_registry, sender, ctx), ENotProducer);
@@ -206,7 +267,7 @@ public fun mint_by_attestation(registry: &AttestationRegistry, producer_registry
         id: object::new(ctx),
         amount: amount,
         producer: sender,
-        attestation: *attestation,
+        attestation: attestation,
         status: 0,
     };
     let attestation_hash = token.attestation.attestor_signature;
@@ -228,10 +289,12 @@ public fun list_tokens<T: key + store>(marketplace: &mut Marketplace<SUI>, list_
     dof::add<bool, T>(&mut listing.id, true, list_item);
     
     marketplace.items.add(uid_to_inner(&token), listing);
-    event::emit(ListingEvent { token_id: token_ids, price: price, seller: seller})
+    event::emit(ListingEvent { token_id: token_ids, price: price, seller: seller});
+
+    object::delete(token);
 }
 
-public fun buy_listing_tokens<T: key + store, SUI>(marketplace: &mut Marketplace<SUI>, buyer: address, listing_id: ID, payment: u64, paid: Coin<SUI>, ctx: &mut TxContext) {
+public fun buy_listing_tokens<T: key + store, SUI>(marketplace: &mut Marketplace<SUI>, buyer: address, listing_id: ID, paid: Coin<SUI>, ctx: &mut TxContext) {
     let Listing { mut id, price, seller } = marketplace.items.remove(listing_id);
     assert!(price == paid.value(), EAmountIncorrect);
 
@@ -245,7 +308,7 @@ public fun buy_listing_tokens<T: key + store, SUI>(marketplace: &mut Marketplace
     transfer::public_transfer(item, buyer);
 }
 
-public fun flag_fraud(registry: &mut FraudRegistry, user: address, object_id: ID, meter_id: string::String, reason: string::String, evidence_hash: vector<u8>, current_time: u64, ctx: &mut TxContext) {
+public fun flag_fraud(registry: &mut FraudRegistry, user: address, object_id: ID, meter_id: string::String, reason: string::String, current_time: u64, _ctx: &mut TxContext) {
     let  fraud_report = FraudFlag {
         user: user,
         meter_id,
@@ -266,7 +329,13 @@ public fun flag_fraud(registry: &mut FraudRegistry, user: address, object_id: ID
     event::emit(FraudAlertEvent { user: users, meter_id: meter_id, reason: reason, timestamp: time })
 }
 
+/// Transfer energy units from sender to recipient
+public fun transfer_energy(sender_meter: &mut MeterRegistry, recipient_meter: &mut MeterRegistry, amount: u64, ctx: &TxContext) {
+    assert!(sender_meter.owner == ctx.sender(), 0); // Only owner can send
+    assert!(sender_meter.initial_energy_units >= amount, 1); // Sufficient balance
 
-public fun transferEnergyToken() {}
+    sender_meter.initial_energy_units = sender_meter.initial_energy_units - amount;
+    recipient_meter.initial_energy_units = recipient_meter.initial_energy_units + amount;
+}
 
 
