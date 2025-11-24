@@ -329,8 +329,6 @@ public fun flag_fraud(registry: &mut FraudRegistry, user: address, object_id: ID
     event::emit(FraudAlertEvent { user: users, meter_id: meter_id, reason: reason, timestamp: time })
 }
 
-public fun transferEnergyToken() {}
-
 /// Transfer energy units from sender to recipient
 public fun transfer_energy(sender_meter: &mut MeterRegistry, recipient_meter: &mut MeterRegistry, amount: u64, ctx: &TxContext) {
     assert!(sender_meter.owner == ctx.sender(), 0); // Only owner can send
