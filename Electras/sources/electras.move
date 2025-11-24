@@ -19,6 +19,7 @@ public struct ELECTRICITY has key, store {
 const EInvalidAttestation: u64 = 1;
 const EAmountIncorrect: u64 = 2;
 const ENotProducer: u64 = 3;
+const EUserAlreadyRegistered: u64 = 4;
 
 /// A receipt for redeemed electricity
 public struct ElectricityReceipt has key, store {
@@ -32,6 +33,15 @@ public struct UserMeter has key, store {
     user_address: address,
     unit_per_hour: u64,
     timestamp: u64,
+}
+
+public struct MeterRegistry has key, store {
+    id: UID,
+    initial_energy_units: u64,
+    total_users: u64,
+    owner: address,
+    user_meters: Table<u64, UserMeter>,
+    receipts: Table<u64, ElectricityReceipt>,
 }
 
 public struct MeterAttestation has store {
@@ -126,8 +136,18 @@ public struct FraudAlertEvent has copy, drop {
     timestamp: u64,    
 }
 
-public fun register_user(user: &signer, meter_id: string::String, unit_per_hour: u64, current_time: u64, user_address: address, ctx: &mut TxContext) {
+public fun register_user(registry: &mut MeterRegistry, meter_id: string::String, unit_per_hour: u64, current_time: u64, user_address: address, key: u64, ctx: &mut TxContext) {
     let id = object::new(ctx); 
+
+    let check_registered = table::contains(&registry.user_meters, key);
+    assert!(check_registered, EUserAlreadyRegistered);
+
+    registry.total_users = registry.total_users + 1;
+
+    //let meter_id = String::from_utf8();
+
+    let unit_per_hour = 0; 
+    let timestamp = current_time; 
 
     let user_meter = UserMeter {
         id,
@@ -136,9 +156,39 @@ public fun register_user(user: &signer, meter_id: string::String, unit_per_hour:
         unit_per_hour,
         timestamp: current_time, 
     };
-    table::add(&mut user_meters, user_address, user_meter);
+
+    let receipt_id = object::new(ctx);
+    let initial_amount = 20;
+    let receipt = ElectricityReceipt {
+        id: receipt_id,
+        amount: initial_amount,
+    };
+
+    table::add(&mut registry.user_meters, key, user_meter);
+    table::add(&mut registry.receipts, key, receipt);
 }
 
+public fun init_registry(initial_energy_units: u64, ctx: &mut TxContext): MeterRegistry {
+    MeterRegistry {
+        id: object::new(ctx),
+        initial_energy_units,
+        total_users: 0,
+        owner: ctx.sender(),
+        receipts: table::new(ctx),
+        user_meters: table::new(ctx),
+    }
+}
+
+public fun set_initial_energy_units(registry: &mut MeterRegistry, new_units: u64, ctx: &TxContext) {
+    assert!(registry.owner == ctx.sender(), ENotProducer); 
+    registry.initial_energy_units = new_units;
+}
+
+/// Top up a user's energy units (only producer can call)
+public fun top_up_energy(registry: &mut MeterRegistry, amount: u64, ctx: &TxContext) {
+    assert!(registry.owner == ctx.sender(), ENotProducer); 
+    registry.initial_energy_units = registry.initial_energy_units + amount;
+}
 
 public fun mint_electricity(cap: &mut TreasuryCap<ELECTRICITY>, amount: u64, ctx: &mut TxContext): Coin<ELECTRICITY> {
     sui::coin::mint<ELECTRICITY>(cap, amount, ctx)
@@ -148,10 +198,6 @@ public fun redeem_electricity(cap: &mut TreasuryCap<ELECTRICITY>, token: Coin<EL
     let amount = sui::coin::value(&token);
     sui::coin::burn<ELECTRICITY>(cap, token);
     ElectricityReceipt { id: object::new(ctx), amount }
-}
-
-public fun initialize(platform_owner: address, oracle: address) {
-
 }
 
 fun serialize_attestation(user_meter: ID, kwh: u64, timestamp: u64): vector<u8> {
@@ -283,7 +329,15 @@ public fun flag_fraud(registry: &mut FraudRegistry, user: address, object_id: ID
     event::emit(FraudAlertEvent { user: users, meter_id: meter_id, reason: reason, timestamp: time })
 }
 
-
 public fun transferEnergyToken() {}
+
+/// Transfer energy units from sender to recipient
+public fun transfer_energy(sender_meter: &mut MeterRegistry, recipient_meter: &mut MeterRegistry, amount: u64, ctx: &TxContext) {
+    assert!(sender_meter.owner == ctx.sender(), 0); // Only owner can send
+    assert!(sender_meter.initial_energy_units >= amount, 1); // Sufficient balance
+
+    sender_meter.initial_energy_units = sender_meter.initial_energy_units - amount;
+    recipient_meter.initial_energy_units = recipient_meter.initial_energy_units + amount;
+}
 
 
