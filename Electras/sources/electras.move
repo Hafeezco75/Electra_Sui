@@ -7,6 +7,7 @@ use sui::coin::TreasuryCap;
 use sui::coin::Coin;
 use sui::sui::SUI;
 use std::bcs;
+use sui::transfer;
 use sui::object::{uid_to_inner};
 use sui::dynamic_object_field as dof;
 use sui::table::{Table, add, borrow_mut};
@@ -140,14 +141,11 @@ public fun register_user(registry: &mut MeterRegistry, meter_id: string::String,
     let id = object::new(ctx); 
 
     let check_registered = table::contains(&registry.user_meters, key);
-    assert!(check_registered, EUserAlreadyRegistered);
+    assert!(!check_registered, EUserAlreadyRegistered);
 
     registry.total_users = registry.total_users + 1;
 
     //let meter_id = String::from_utf8();
-
-    let unit_per_hour = 0; 
-    let timestamp = current_time; 
 
     let user_meter = UserMeter {
         id,
@@ -288,13 +286,15 @@ public fun list_tokens<T: key + store>(marketplace: &mut Marketplace<SUI>, list_
     let token_ids = uid_to_inner(&token);
     dof::add<bool, T>(&mut listing.id, true, list_item);
     
-    marketplace.items.add(uid_to_inner(&token), listing);
+    //marketplace.items.add(uid_to_inner(&token), listing);
+    table::add(&mut marketplace.items, uid_to_inner(&token), listing);
+
     event::emit(ListingEvent { token_id: token_ids, price: price, seller: seller});
 
     object::delete(token);
 }
 
-public fun buy_listing_tokens<T: key + store, SUI>(marketplace: &mut Marketplace<SUI>, buyer: address, listing_id: ID, paid: Coin<SUI>, ctx: &mut TxContext) {
+public fun buy_listing_tokens<T: key + store>(marketplace: &mut Marketplace<SUI>, buyer: address, listing_id: ID, paid: Coin<SUI>, ctx: &mut TxContext) {
     let Listing { mut id, price, seller } = marketplace.items.remove(listing_id);
     assert!(price == paid.value(), EAmountIncorrect);
 
