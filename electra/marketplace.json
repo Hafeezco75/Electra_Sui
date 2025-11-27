@@ -1,0 +1,137 @@
+{
+  "digest": "4fSbXAZTWJG9g8ZXemhVCYSHj31HvNfcQZZwiUB2GjkU",
+  "transaction": {
+    "data": {
+      "messageVersion": "v1",
+      "transaction": {
+        "kind": "ProgrammableTransaction",
+        "inputs": [],
+        "transactions": [
+          {
+            "MoveCall": {
+              "package": "0xd84b8835a4c6b97afe2f370d8b9d479038a2d5c2a494aee9d7acbf68925783f7",
+              "module": "electras",
+              "function": "init_marketplace"
+            }
+          }
+        ]
+      },
+      "sender": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7",
+      "gasData": {
+        "payment": [
+          {
+            "objectId": "0x464301c2fd0e2666a249b01fa4a72cafbafaa53cfea6f44edff18ad0463ee337",
+            "version": 571367307,
+            "digest": "8fJxZTEUxPk24KY4cAmPQPcReWF3t6jDX7JSKe9MWAjc"
+          }
+        ],
+        "owner": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7",
+        "price": "1000",
+        "budget": "10000000"
+      }
+    },
+    "txSignatures": [
+      "AJLZEYmgaqNhViMH2LsI3iA8hQLJqDkhhxTrKRxoqrbfzNJ1HbdIWminjRmQXsnIL0QTbYxzz29ecjzfC9BZOwc7qFzNPtBsKXO6mbnYI6ZWCFECPhc1gNobo9j4ZHPsMA=="
+    ]
+  },
+  "effects": {
+    "messageVersion": "v1",
+    "status": {
+      "status": "success"
+    },
+    "executedEpoch": "931",
+    "gasUsed": {
+      "computationCost": "1000000",
+      "storageCost": "3678400",
+      "storageRebate": "978120",
+      "nonRefundableStorageFee": "9880"
+    },
+    "modifiedAtVersions": [
+      {
+        "objectId": "0x464301c2fd0e2666a249b01fa4a72cafbafaa53cfea6f44edff18ad0463ee337",
+        "sequenceNumber": "571367307"
+      }
+    ],
+    "transactionDigest": "4fSbXAZTWJG9g8ZXemhVCYSHj31HvNfcQZZwiUB2GjkU",
+    "created": [
+      {
+        "owner": {
+          "Shared": {
+            "initial_shared_version": 571367308
+          }
+        },
+        "reference": {
+          "objectId": "0xa8e2e478526d77636b91cc58ad9d580c356354ea163192062c8a42b2f87540b9",
+          "version": 571367308,
+          "digest": "B7GYz67kDsFUqJDq6a6iRUSB5FeKN62y3mNGmWZZmfF4"
+        }
+      }
+    ],
+    "mutated": [
+      {
+        "owner": {
+          "AddressOwner": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7"
+        },
+        "reference": {
+          "objectId": "0x464301c2fd0e2666a249b01fa4a72cafbafaa53cfea6f44edff18ad0463ee337",
+          "version": 571367308,
+          "digest": "2cZVfovuy8inWysaVthLPcBzhPPTzyLVo1TKq5yYSEaL"
+        }
+      }
+    ],
+    "gasObject": {
+      "owner": {
+        "AddressOwner": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7"
+      },
+      "reference": {
+        "objectId": "0x464301c2fd0e2666a249b01fa4a72cafbafaa53cfea6f44edff18ad0463ee337",
+        "version": 571367308,
+        "digest": "2cZVfovuy8inWysaVthLPcBzhPPTzyLVo1TKq5yYSEaL"
+      }
+    },
+    "dependencies": [
+      "7bmzxcmZwpfJpRJcZTTG5g35idQNKbLL93gvpk2mwnP8",
+      "BsiKbm76jHqp3szz3Eb4dwVqVzEkVS4ZmY9Lkj9aARLw"
+    ]
+  },
+  "events": [],
+  "objectChanges": [
+    {
+      "type": "mutated",
+      "sender": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7",
+      "owner": {
+        "AddressOwner": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7"
+      },
+      "objectType": "0x2::coin::Coin<0x2::sui::SUI>",
+      "objectId": "0x464301c2fd0e2666a249b01fa4a72cafbafaa53cfea6f44edff18ad0463ee337",
+      "version": "571367308",
+      "previousVersion": "571367307",
+      "digest": "2cZVfovuy8inWysaVthLPcBzhPPTzyLVo1TKq5yYSEaL"
+    },
+    {
+      "type": "created",
+      "sender": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7",
+      "owner": {
+        "Shared": {
+          "initial_shared_version": 571367308
+        }
+      },
+      "objectType": "0xd84b8835a4c6b97afe2f370d8b9d479038a2d5c2a494aee9d7acbf68925783f7::electras::Marketplace<0x2::sui::SUI>",
+      "objectId": "0xa8e2e478526d77636b91cc58ad9d580c356354ea163192062c8a42b2f87540b9",
+      "version": "571367308",
+      "digest": "B7GYz67kDsFUqJDq6a6iRUSB5FeKN62y3mNGmWZZmfF4"
+    }
+  ],
+  "balanceChanges": [
+    {
+      "owner": {
+        "AddressOwner": "0xd8986dbab0f12959b5f5c15ca509e0fb8fd21bf2349d24af3a882c0a338facd7"
+      },
+      "coinType": "0x2::sui::SUI",
+      "amount": "-3700280"
+    }
+  ],
+  "timestampMs": "1764260764934",
+  "confirmedLocalExecution": true,
+  "checkpoint": "268906126"
+}
