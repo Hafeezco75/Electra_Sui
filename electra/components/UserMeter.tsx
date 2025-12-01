@@ -27,26 +27,171 @@ export default function UserMeter() {
   };
 
   return (
-    <div className="glass rounded-2xl p-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Activity className="w-6 h-6 text-electric" />
-        <h2 className="text-2xl font-bold">Your Smart Meter</h2>
-      </div>
+    <div className="relative">
+      {/* Futuristic Container */}
+      <div className="relative rounded-3xl overflow-hidden border-2 border-electric/30 bg-gradient-to-br from-dark-card via-dark-base to-dark-card">
+        {/* Animated Grid Background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(#00FF94 1px, transparent 1px),
+              linear-gradient(90deg, #00FF94 1px, transparent 1px)
+            `,
+            backgroundSize: "30px 30px",
+          }} />
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Circular Gauge */}
-        <div className="flex items-center justify-center">
-          <motion.div
-            className="relative"
-            animate={{
-              scale: [1, 1.02, 1],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
+        {/* Glowing Corner Accents */}
+        <div className="absolute top-0 left-0 w-32 h-32 bg-electric/20 blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-32 h-32 bg-cyan-400/20 blur-3xl" />
+        
+        {/* Animated Scan Line */}
+        <motion.div
+          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-electric to-transparent"
+          animate={{
+            top: ["0%", "100%"],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+
+        <div className="relative z-10 p-8">
+          {/* Header with Holographic Effect */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              {/* Hexagonal Icon Container */}
+              <motion.div
+                className="relative w-16 h-16"
+                animate={{
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-electric to-cyan-400 opacity-20 blur-xl" />
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <motion.polygon
+                    points="50 1 95 25 95 75 50 99 5 75 5 25"
+                    fill="none"
+                    stroke="url(#hexGradient)"
+                    strokeWidth="2"
+                    animate={{
+                      strokeDashoffset: [0, 400],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    strokeDasharray="200 200"
+                  />
+                  <defs>
+                    <linearGradient id="hexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#00FF94" />
+                      <stop offset="100%" stopColor="#00D9FF" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Activity className="w-7 h-7 text-electric" />
+                </div>
+              </motion.div>
+
+              <div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-electric via-cyan-400 to-electric bg-clip-text text-transparent">
+                  SMART METER
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="h-px w-8 bg-gradient-to-r from-electric to-transparent" />
+                  <p className="text-xs text-gray-500 font-mono uppercase tracking-wider">
+                    Neural Link Active
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Futuristic Status Display */}
+            <div className="flex flex-col items-end gap-2">
+              <motion.div
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-electric/10 border border-electric/50"
+                animate={{
+                  boxShadow: [
+                    "0 0 10px rgba(0, 255, 148, 0.3)",
+                    "0 0 20px rgba(0, 255, 148, 0.6)",
+                    "0 0 10px rgba(0, 255, 148, 0.3)",
+                  ],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                }}
+              >
+                <motion.div
+                  className="w-2 h-2 rounded-full bg-electric"
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [1, 0.5, 1],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                  }}
+                />
+                <span className="text-xs font-mono text-electric font-bold tracking-wider">
+                  ONLINE
+                </span>
+              </motion.div>
+              <div className="text-xs text-gray-500 font-mono">
+                ID: {meterData.meter_id}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Holographic Gauge */}
+            <div className="flex items-center justify-center relative">
+              {/* Outer Glow Rings */}
+              <motion.div
+                className="absolute w-80 h-80 rounded-full border border-electric/20"
+                animate={{
+                  scale: [1, 1.1, 1],
+                  opacity: [0.3, 0.6, 0.3],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                }}
+              />
+              <motion.div
+                className="absolute w-72 h-72 rounded-full border border-cyan-400/20"
+                animate={{
+                  scale: [1, 1.15, 1],
+                  opacity: [0.2, 0.5, 0.2],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  delay: 0.5,
+                }}
+              />
+
+              <motion.div
+                className="relative"
+                animate={{
+                  scale: [1, 1.02, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
             <svg width="280" height="280" viewBox="0 0 280 280">
               {/* Background Circle */}
               <circle
@@ -171,6 +316,8 @@ export default function UserMeter() {
                 {isListing ? "Listing..." : "List on Marketplace"}
               </motion.button>
             </div>
+          </div>
+        </div>
           </div>
         </div>
       </div>

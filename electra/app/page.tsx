@@ -80,6 +80,302 @@ export default function LandingPage() {
               }}
             />
           ))}
+
+          {/* Lightning Strikes - Multiple Locations */}
+          {mounted && (
+            <>
+              {/* Lightning Strike 1 - Left Side */}
+              <motion.svg
+                className="absolute top-0 left-[10%] w-32 h-full pointer-events-none"
+                viewBox="0 0 100 800"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0, 1, 0] }}
+                transition={{
+                  duration: 0.4,
+                  repeat: Infinity,
+                  repeatDelay: 5,
+                  times: [0, 0.1, 0.2, 0.3, 0.4],
+                }}
+              >
+                <defs>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <motion.path
+                  d="M 50 0 L 45 80 L 55 80 L 40 160 L 50 160 L 35 240 L 48 240 L 30 320 L 45 320 L 25 400 L 40 400 L 20 500 L 35 500 L 15 600 L 30 600 L 10 700 L 25 700 L 5 800"
+                  stroke="#00FF94"
+                  strokeWidth="3"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  strokeLinejoin="miter"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 1, 0] }}
+                  transition={{
+                    duration: 0.4,
+                    repeat: Infinity,
+                    repeatDelay: 5,
+                    times: [0, 0.15, 0.35, 0.4],
+                  }}
+                />
+                <motion.path
+                  d="M 40 160 L 60 200 L 55 240"
+                  stroke="#00FF94"
+                  strokeWidth="2"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 1, 0] }}
+                  transition={{
+                    duration: 0.4,
+                    repeat: Infinity,
+                    repeatDelay: 5,
+                    delay: 0.05,
+                    times: [0, 0.15, 0.35, 0.4],
+                  }}
+                />
+              </motion.svg>
+
+              {/* Lightning Strike 2 - Center Left */}
+              <motion.svg
+                className="absolute top-0 left-[30%] w-32 h-full pointer-events-none"
+                viewBox="0 0 100 800"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  duration: 0.3,
+                  repeat: Infinity,
+                  repeatDelay: 6,
+                  delay: 1.5,
+                }}
+              >
+                <motion.path
+                  d="M 50 0 L 55 70 L 45 70 L 60 140 L 48 140 L 65 210 L 50 210 L 70 280 L 55 280 L 75 350 L 60 350 L 80 420 L 65 420 L 85 500"
+                  stroke="#2979FF"
+                  strokeWidth="2.5"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 0] }}
+                  transition={{
+                    duration: 0.3,
+                    repeat: Infinity,
+                    repeatDelay: 6,
+                    delay: 1.5,
+                  }}
+                />
+              </motion.svg>
+
+              {/* Lightning Strike 3 - Right Side */}
+              <motion.svg
+                className="absolute top-0 right-[15%] w-32 h-full pointer-events-none"
+                viewBox="0 0 100 800"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0, 1, 0] }}
+                transition={{
+                  duration: 0.4,
+                  repeat: Infinity,
+                  repeatDelay: 7,
+                  delay: 2,
+                  times: [0, 0.1, 0.2, 0.3, 0.4],
+                }}
+              >
+                <motion.path
+                  d="M 50 0 L 55 90 L 45 90 L 60 180 L 50 180 L 65 270 L 52 270 L 70 360 L 55 360 L 75 450 L 60 450 L 80 550 L 65 550 L 85 650 L 70 650 L 90 750 L 75 750 L 95 800"
+                  stroke="#2979FF"
+                  strokeWidth="3"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  strokeLinejoin="miter"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 1, 0] }}
+                  transition={{
+                    duration: 0.4,
+                    repeat: Infinity,
+                    repeatDelay: 7,
+                    delay: 2,
+                    times: [0, 0.15, 0.35, 0.4],
+                  }}
+                />
+                <motion.path
+                  d="M 60 180 L 40 220 L 45 270"
+                  stroke="#2979FF"
+                  strokeWidth="2"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 1, 0] }}
+                  transition={{
+                    duration: 0.4,
+                    repeat: Infinity,
+                    repeatDelay: 7,
+                    delay: 2.05,
+                    times: [0, 0.15, 0.35, 0.4],
+                  }}
+                />
+              </motion.svg>
+
+              {/* Lightning Strike 4 - Far Right */}
+              <motion.svg
+                className="absolute top-0 right-[5%] w-24 h-96 pointer-events-none"
+                viewBox="0 0 80 400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  duration: 0.3,
+                  repeat: Infinity,
+                  repeatDelay: 8,
+                  delay: 3.5,
+                }}
+              >
+                <motion.path
+                  d="M 40 0 L 35 60 L 45 60 L 30 120 L 40 120 L 25 180 L 38 180 L 20 240 L 35 240 L 15 300 L 30 300 L 10 360 L 25 360 L 5 400"
+                  stroke="#00FF94"
+                  strokeWidth="2.5"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 0] }}
+                  transition={{
+                    duration: 0.3,
+                    repeat: Infinity,
+                    repeatDelay: 8,
+                    delay: 3.5,
+                  }}
+                />
+              </motion.svg>
+
+              {/* Lightning Strike 5 - Middle Short */}
+              <motion.svg
+                className="absolute top-1/3 left-[50%] w-20 h-64 pointer-events-none"
+                viewBox="0 0 60 300"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  duration: 0.25,
+                  repeat: Infinity,
+                  repeatDelay: 5.5,
+                  delay: 2.8,
+                }}
+              >
+                <motion.path
+                  d="M 30 0 L 25 50 L 35 50 L 20 100 L 32 100 L 18 150 L 30 150 L 15 200 L 28 200 L 10 250 L 22 250 L 5 300"
+                  stroke="#00FF94"
+                  strokeWidth="2"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 0] }}
+                  transition={{
+                    duration: 0.25,
+                    repeat: Infinity,
+                    repeatDelay: 5.5,
+                    delay: 2.8,
+                  }}
+                />
+              </motion.svg>
+
+              {/* Lightning Strike 6 - Bottom Left */}
+              <motion.svg
+                className="absolute bottom-1/4 left-[20%] w-24 h-80 pointer-events-none"
+                viewBox="0 0 80 350"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0, 1, 0] }}
+                transition={{
+                  duration: 0.35,
+                  repeat: Infinity,
+                  repeatDelay: 6.5,
+                  delay: 4.2,
+                  times: [0, 0.1, 0.2, 0.3, 0.35],
+                }}
+              >
+                <motion.path
+                  d="M 40 0 L 45 55 L 35 55 L 50 110 L 38 110 L 55 165 L 42 165 L 60 220 L 45 220 L 65 275 L 50 275 L 70 330 L 55 330 L 75 350"
+                  stroke="#2979FF"
+                  strokeWidth="2.5"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 1, 0] }}
+                  transition={{
+                    duration: 0.35,
+                    repeat: Infinity,
+                    repeatDelay: 6.5,
+                    delay: 4.2,
+                    times: [0, 0.15, 0.3, 0.35],
+                  }}
+                />
+              </motion.svg>
+
+              {/* Lightning Strike 7 - Bottom Right */}
+              <motion.svg
+                className="absolute bottom-1/3 right-[25%] w-28 h-72 pointer-events-none"
+                viewBox="0 0 90 320"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{
+                  duration: 0.3,
+                  repeat: Infinity,
+                  repeatDelay: 7.5,
+                  delay: 5,
+                }}
+              >
+                <motion.path
+                  d="M 45 0 L 40 60 L 50 60 L 35 120 L 48 120 L 30 180 L 45 180 L 25 240 L 40 240 L 20 300 L 35 300 L 10 320"
+                  stroke="#00FF94"
+                  strokeWidth="2.5"
+                  fill="none"
+                  filter="url(#glow)"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: [0, 1, 0] }}
+                  transition={{
+                    duration: 0.3,
+                    repeat: Infinity,
+                    repeatDelay: 7.5,
+                    delay: 5,
+                  }}
+                />
+              </motion.svg>
+            </>
+          )}
+
+          {/* Electric Zaps - Horizontal */}
+          {mounted && Array.from({ length: 3 }).map((_, i) => (
+            <motion.div
+              key={`zap-${i}`}
+              className="absolute h-0.5 bg-gradient-to-r from-transparent via-electric to-transparent"
+              style={{
+                top: `${20 + i * 30}%`,
+                left: 0,
+                right: 0,
+              }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{
+                scaleX: [0, 1, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 0.5,
+                repeat: Infinity,
+                repeatDelay: 4 + i * 1.5,
+                delay: i * 0.8,
+              }}
+            />
+          ))}
         </div>
 
         {/* Content - Asymmetric Layout */}
@@ -103,26 +399,71 @@ export default function LandingPage() {
             </motion.div>
 
             {/* Main Heading */}
-            <div>
+            <div className="relative">
+              {/* Electric Glow Behind Text */}
+              {mounted && (
+                <motion.div
+                  className="absolute -inset-4 bg-electric/20 blur-3xl rounded-full"
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    opacity: [0.2, 0.4, 0.2],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                  }}
+                />
+              )}
+
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-6xl lg:text-7xl font-bold mb-4 leading-tight"
+                className="text-6xl lg:text-7xl font-bold mb-4 leading-tight relative z-10"
               >
                 <span className="text-white">Decentralized</span>
                 <br />
-                <span className="bg-gradient-to-r from-electric via-cyan-400 to-cyber bg-clip-text text-transparent">
+                <motion.span
+                  className="bg-gradient-to-r from-electric via-cyan-400 to-cyber bg-clip-text text-transparent"
+                  animate={{
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                  }}
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                  }}
+                  style={{
+                    backgroundSize: "200% 200%",
+                  }}
+                >
                   Power Trading
-                </span>
+                </motion.span>
               </motion.h1>
               
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="h-1 w-24 bg-gradient-to-r from-electric to-cyber rounded-full"
-              />
+                className="h-1 w-24 bg-gradient-to-r from-electric to-cyber rounded-full relative z-10"
+              >
+                {/* Animated Spark */}
+                {mounted && (
+                  <motion.div
+                    className="absolute top-0 left-0 w-2 h-2 bg-white rounded-full"
+                    animate={{
+                      x: [0, 96, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    style={{
+                      boxShadow: "0 0 10px #00FF94",
+                    }}
+                  />
+                )}
+              </motion.div>
             </div>
             
             {/* Subtext */}
@@ -194,6 +535,76 @@ export default function LandingPage() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="relative hidden lg:block"
           >
+            {/* Electric Zaps Around Cards */}
+            {mounted && (
+              <>
+                {/* Circular Electric Zaps */}
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <motion.div
+                    key={`circle-zap-${i}`}
+                    className="absolute w-3 h-3 rounded-full bg-electric"
+                    style={{
+                      left: `${50 + 40 * Math.cos((i * Math.PI) / 3)}%`,
+                      top: `${50 + 40 * Math.sin((i * Math.PI) / 3)}%`,
+                      boxShadow: "0 0 20px #00FF94",
+                    }}
+                    animate={{
+                      scale: [1, 1.5, 1],
+                      opacity: [0.3, 1, 0.3],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: i * 0.3,
+                    }}
+                  />
+                ))}
+
+                {/* Connecting Zap Lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  <motion.line
+                    x1="10%"
+                    y1="20%"
+                    x2="90%"
+                    y2="80%"
+                    stroke="#00FF94"
+                    strokeWidth="1"
+                    strokeDasharray="5,5"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{
+                      pathLength: [0, 1, 0],
+                      opacity: [0, 0.6, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatDelay: 3,
+                    }}
+                  />
+                  <motion.line
+                    x1="90%"
+                    y1="20%"
+                    x2="10%"
+                    y2="80%"
+                    stroke="#2979FF"
+                    strokeWidth="1"
+                    strokeDasharray="5,5"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{
+                      pathLength: [0, 1, 0],
+                      opacity: [0, 0.6, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatDelay: 3,
+                      delay: 1,
+                    }}
+                  />
+                </svg>
+              </>
+            )}
+
             {/* 3D Card Stack */}
             <div className="relative h-[500px]">
               {/* Card 1 - Back */}
@@ -339,18 +750,68 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.2 }}
                 whileHover={{ y: -10 }}
-                className="glass glass-hover rounded-2xl p-8 relative group"
+                className="glass glass-hover rounded-2xl p-8 relative group overflow-hidden"
               >
-                <div className={`absolute top-0 right-0 text-8xl font-bold opacity-5 text-${item.color}`}>
+                {/* Electric Border Effect on Hover */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl"
+                  initial={{ opacity: 0 }}
+                  whileHover={{ opacity: 1 }}
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${item.color === "electric" ? "#00FF94" : "#2979FF"}, transparent)`,
+                    backgroundSize: "200% 100%",
+                  }}
+                  animate={{
+                    backgroundPosition: ["0% 0%", "200% 0%"],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                  }}
+                />
+
+                {/* Corner Zaps */}
+                <motion.div
+                  className={`absolute top-0 right-0 w-2 h-2 rounded-full bg-${item.color}`}
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: index * 0.5,
+                  }}
+                  style={{
+                    boxShadow: `0 0 10px ${item.color === "electric" ? "#00FF94" : "#2979FF"}`,
+                  }}
+                />
+                <motion.div
+                  className={`absolute bottom-0 left-0 w-2 h-2 rounded-full bg-${item.color}`}
+                  animate={{
+                    scale: [1, 1.5, 1],
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: index * 0.5 + 1,
+                  }}
+                  style={{
+                    boxShadow: `0 0 10px ${item.color === "electric" ? "#00FF94" : "#2979FF"}`,
+                  }}
+                />
+
+                <div className={`absolute top-0 right-0 text-8xl font-bold opacity-5 text-${item.color} z-0`}>
                   {item.step}
                 </div>
                 
-                <div className={`w-16 h-16 rounded-full bg-${item.color}/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                <div className={`relative z-10 w-16 h-16 rounded-full bg-${item.color}/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                   <item.icon className={`w-8 h-8 text-${item.color}`} />
                 </div>
                 
-                <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
-                <p className="text-gray-400 leading-relaxed">{item.description}</p>
+                <h3 className="relative z-10 text-2xl font-bold mb-4">{item.title}</h3>
+                <p className="relative z-10 text-gray-400 leading-relaxed">{item.description}</p>
               </motion.div>
             ))}
           </div>

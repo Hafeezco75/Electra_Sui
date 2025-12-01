@@ -16,10 +16,10 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "registry">("dashboard");
 
   return (
-    <div className="min-h-screen flex bg-dark-base">
+    <div className="h-screen flex bg-dark-base overflow-hidden">
       <Sidebar activeView={activeView} setActiveView={setActiveView} />
       
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar
           role={role}
           setRole={setRole}
@@ -27,7 +27,7 @@ export default function Dashboard() {
           setWalletConnected={setWalletConnected}
         />
         
-        <main className="flex-1 p-8 overflow-auto">
+        <main className="flex-1 p-8 overflow-y-auto">
           <AnimatePresence mode="wait">
             {activeView === "dashboard" ? (
               <AnimatePresence mode="wait">

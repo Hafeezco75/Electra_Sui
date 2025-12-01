@@ -59,23 +59,132 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
   const suspiciousCount = listings.filter(l => l.isSuspicious).length;
 
   return (
-    <div className="glass rounded-2xl p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <ShoppingCart className="w-6 h-6 text-cyber" />
-          <div>
-            <h2 className="text-2xl font-bold">Energy Marketplace</h2>
-            <p className="text-sm text-gray-400">Buy unused energy tokens from other users</p>
-          </div>
+    <div className="relative">
+      {/* Futuristic Container */}
+      <div className="relative rounded-3xl overflow-hidden border-2 border-cyber/30 bg-gradient-to-br from-dark-card via-dark-base to-dark-card">
+        {/* Animated Circuit Pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              linear-gradient(#2979FF 1px, transparent 1px),
+              linear-gradient(90deg, #2979FF 1px, transparent 1px)
+            `,
+            backgroundSize: "40px 40px",
+          }} />
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-400">
-          <TrendingUp className="w-4 h-4" />
-          <span>{listings.length} active listings</span>
-        </div>
-      </div>
 
-      {/* Fraud Warning Banner */}
-      {suspiciousCount > 0 && (
+        {/* Corner Accents */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-cyber/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-400/20 blur-3xl" />
+        
+        {/* Animated Data Stream */}
+        <motion.div
+          className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-cyber to-transparent"
+          animate={{
+            opacity: [0.3, 0.8, 0.3],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+          }}
+        />
+
+        <div className="relative z-10 p-8">
+          {/* Futuristic Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8">
+            <div className="flex items-center gap-4">
+              {/* Holographic Icon */}
+              <motion.div
+                className="relative w-16 h-16"
+                animate={{
+                  rotateY: [0, 360],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-cyber to-blue-400 opacity-20 blur-xl" />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-cyber/20 to-blue-400/20 border-2 border-cyber/50 flex items-center justify-center backdrop-blur-sm">
+                  <ShoppingCart className="w-7 h-7 text-cyber" />
+                </div>
+                {/* Corner Brackets */}
+                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyber" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyber" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyber" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyber" />
+              </motion.div>
+
+              <div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-cyber via-blue-400 to-cyber bg-clip-text text-transparent">
+                  ENERGY EXCHANGE
+                </h2>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="h-px w-8 bg-gradient-to-r from-cyber to-transparent" />
+                  <p className="text-xs text-gray-500 font-mono uppercase tracking-wider">
+                    Decentralized Trading Protocol
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Holographic Stats */}
+            <div className="flex items-center gap-3">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="relative px-5 py-3 rounded-xl bg-cyber/10 border border-cyber/50 backdrop-blur-sm overflow-hidden"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-cyber/20 to-transparent"
+                  animate={{
+                    x: ["-100%", "200%"],
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
+                />
+                <div className="relative flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-cyber" />
+                  <span className="text-sm font-mono">
+                    <span className="text-cyber font-bold text-lg">{listings.length}</span>
+                    <span className="text-gray-400 ml-1 text-xs">ACTIVE</span>
+                  </span>
+                </div>
+              </motion.div>
+
+              {suspiciousCount > 0 && (
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  className="relative px-5 py-3 rounded-xl bg-alert/10 border border-alert/50 backdrop-blur-sm overflow-hidden"
+                  animate={{
+                    boxShadow: [
+                      "0 0 10px rgba(255, 152, 0, 0.3)",
+                      "0 0 20px rgba(255, 152, 0, 0.5)",
+                      "0 0 10px rgba(255, 152, 0, 0.3)",
+                    ],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                  }}
+                >
+                  <div className="relative flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-alert animate-pulse" />
+                    <span className="text-sm font-mono">
+                      <span className="text-alert font-bold text-lg">{suspiciousCount}</span>
+                      <span className="text-gray-400 ml-1 text-xs">THREAT</span>
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+
+        {/* Fraud Warning Banner */}
+        {suspiciousCount > 0 && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
@@ -93,9 +202,9 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
             </div>
           </div>
         </motion.div>
-      )}
+        )}
 
-      <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-dark-border">
@@ -212,6 +321,8 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
             ))}
           </tbody>
         </table>
+        </div>
+        </div>
       </div>
     </div>
   );
