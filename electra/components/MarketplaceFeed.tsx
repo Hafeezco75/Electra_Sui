@@ -20,6 +20,8 @@ interface MarketplaceFeedProps {
 export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
   const [hoveredListing, setHoveredListing] = useState<string | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [purchasingId, setPurchasingId] = useState<string | null>(null);
 
   // Initialize mock data with useState
   useEffect(() => {
@@ -95,13 +97,14 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
             <div className="flex items-center gap-4">
               {/* Holographic Icon */}
               <motion.div
+                key={isPurchasing ? "stopped" : "rotating"}
                 className="relative w-16 h-16"
                 animate={{
-                  rotateY: [0, 360],
+                  rotateY: isPurchasing ? 0 : [0, 360],
                 }}
                 transition={{
-                  duration: 8,
-                  repeat: Infinity,
+                  duration: isPurchasing ? 0 : 8,
+                  repeat: isPurchasing ? 0 : Infinity,
                   ease: "linear",
                 }}
               >
@@ -183,26 +186,7 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
             </div>
           </div>
 
-        {/* Fraud Warning Banner */}
-        {suspiciousCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="mb-6 glass rounded-xl p-4 border-2 border-alert/50 bg-alert/10"
-        >
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-alert animate-pulse" />
-            <div>
-              <div className="font-bold text-alert">
-                {suspiciousCount} Suspicious {suspiciousCount === 1 ? "Listing" : "Listings"} Detected
-              </div>
-              <div className="text-sm text-gray-300 mt-1">
-                Our fraud detection system has flagged potentially fraudulent activity. Flagged listings are dimmed and disabled.
-              </div>
-            </div>
-          </div>
-        </motion.div>
-        )}
+
 
         <div className="overflow-x-auto">
         <table className="w-full">
@@ -256,25 +240,16 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
                         </div>
                         {hoveredListing === listing.id && (
                           <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="absolute left-0 top-10 z-10 glass rounded-lg p-4 w-72 border-2 border-alert/70 bg-alert/10"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute left-0 top-10 z-10 glass rounded-xl p-3 w-64 border border-alert/70 bg-alert/10 backdrop-blur-xl"
                           >
-                            <div className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-full bg-alert/30 flex items-center justify-center flex-shrink-0">
-                                <AlertTriangle className="w-5 h-5 text-alert" />
-                              </div>
-                              <div>
-                                <div className="font-bold text-alert text-base mb-2">
-                                  ⚠️ Suspicious Anomaly Detected
-                                </div>
-                                <div className="text-sm text-gray-300 mb-2">
-                                  Off-chain anomaly detected: Unusual meter spike pattern
-                                </div>
-                                <div className="text-xs text-gray-400 italic">
-                                  This listing has been flagged by our fraud detection system. Purchase at your own risk.
-                                </div>
-                              </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <AlertTriangle className="w-4 h-4 text-alert" />
+                              <span className="font-bold text-alert text-sm">Anomaly Detected</span>
+                            </div>
+                            <div className="text-xs text-gray-300">
+                              Unusual meter spike pattern flagged by fraud detection
                             </div>
                           </motion.div>
                         )}
@@ -304,17 +279,74 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
                 </td>
                 <td className="py-4 px-4">
                   <motion.button
-                    onClick={() => !listing.isSuspicious && onPurchase(listing)}
+                    onClick={() => {
+                      if (!listing.isSuspicious) {
+                        setIsPurchasing(true);
+                        setPurchasingId(listing.id);
+                        setTimeout(() => {
+                          onPurchase(listing);
+                          setIsPurchasing(false);
+                          setPurchasingId(null);
+                        }, 800);
+                      }
+                    }}
                     whileHover={!listing.isSuspicious ? { scale: 1.05 } : {}}
                     whileTap={!listing.isSuspicious ? { scale: 0.95 } : {}}
-                    disabled={listing.isSuspicious}
-                    className={`px-6 py-2 rounded-lg font-bold transition-colors ${
+                    animate={purchasingId === listing.id ? {
+                      x: [-2, 2, -2, 2, 0],
+                      boxShadow: [
+                        "0 0 0px rgba(0, 255, 148, 0)",
+                        "0 0 20px rgba(0, 255, 148, 0.8)",
+                        "0 0 40px rgba(0, 255, 148, 1)",
+                        "0 0 20px rgba(0, 255, 148, 0.8)",
+                        "0 0 0px rgba(0, 255, 148, 0)",
+                      ],
+                    } : {}}
+                    transition={{
+                      duration: 0.4,
+                      times: [0, 0.2, 0.5, 0.8, 1],
+                    }}
+                    disabled={listing.isSuspicious || isPurchasing}
+                    className={`relative px-6 py-2 rounded-lg font-bold transition-colors overflow-hidden ${
                       listing.isSuspicious
                         ? "bg-alert/10 text-alert/50 border border-alert/30 cursor-not-allowed"
                         : "bg-cyber/20 text-cyber border border-cyber/50 hover:bg-cyber/30"
                     }`}
                   >
-                    {listing.isSuspicious ? "Flagged" : "Buy"}
+                    {/* Electric Zap Effect */}
+                    {purchasingId === listing.id && (
+                      <>
+                        {[...Array(6)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="absolute inset-0 pointer-events-none"
+                            initial={{ opacity: 0 }}
+                            animate={{
+                              opacity: [0, 1, 0],
+                            }}
+                            transition={{
+                              duration: 0.15,
+                              delay: i * 0.1,
+                            }}
+                          >
+                            <svg className="absolute inset-0 w-full h-full">
+                              <motion.path
+                                d={`M ${Math.random() * 100} 0 L ${Math.random() * 100} ${Math.random() * 50} L ${Math.random() * 100} 100`}
+                                stroke="#00FF94"
+                                strokeWidth="2"
+                                fill="none"
+                                initial={{ pathLength: 0 }}
+                                animate={{ pathLength: [0, 1, 0] }}
+                                transition={{ duration: 0.2, delay: i * 0.05 }}
+                              />
+                            </svg>
+                          </motion.div>
+                        ))}
+                      </>
+                    )}
+                    <span className="relative z-10">
+                      {listing.isSuspicious ? "Flagged" : purchasingId === listing.id ? "⚡" : "Buy"}
+                    </span>
                   </motion.button>
                 </td>
               </motion.tr>

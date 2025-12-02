@@ -7,13 +7,14 @@ import TopBar from "@/components/TopBar";
 import ConsumerView from "@/components/ConsumerView";
 import ProducerView from "@/components/ProducerView";
 import MeterRegistry from "@/components/MeterRegistry";
+import MarketplaceView from "@/components/MarketplaceView";
 
 export type UserRole = "consumer" | "producer";
 
 export default function Dashboard() {
   const [role, setRole] = useState<UserRole>("consumer");
   const [walletConnected, setWalletConnected] = useState(false);
-  const [activeView, setActiveView] = useState<"dashboard" | "registry">("dashboard");
+  const [activeView, setActiveView] = useState<"dashboard" | "marketplace" | "registry">("dashboard");
 
   return (
     <div className="h-screen flex bg-dark-base overflow-hidden">
@@ -27,7 +28,7 @@ export default function Dashboard() {
           setWalletConnected={setWalletConnected}
         />
         
-        <main className="flex-1 p-8 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
           <AnimatePresence mode="wait">
             {activeView === "dashboard" ? (
               <AnimatePresence mode="wait">
@@ -53,6 +54,16 @@ export default function Dashboard() {
                   </motion.div>
                 )}
               </AnimatePresence>
+            ) : activeView === "marketplace" ? (
+              <motion.div
+                key="marketplace"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <MarketplaceView />
+              </motion.div>
             ) : (
               <motion.div
                 key="registry"

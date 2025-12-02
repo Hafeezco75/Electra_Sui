@@ -1,16 +1,17 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap, LayoutDashboard, Search } from "lucide-react";
+import { Zap, LayoutDashboard, Search, ShoppingCart } from "lucide-react";
 
 interface SidebarProps {
-  activeView: "dashboard" | "registry";
-  setActiveView: (view: "dashboard" | "registry") => void;
+  activeView: "dashboard" | "marketplace" | "registry";
+  setActiveView: (view: "dashboard" | "marketplace" | "registry") => void;
 }
 
 export default function Sidebar({ activeView, setActiveView }: SidebarProps) {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "marketplace", label: "Marketplace", icon: ShoppingCart },
     { id: "registry", label: "Meter Registry", icon: Search },
   ];
 
