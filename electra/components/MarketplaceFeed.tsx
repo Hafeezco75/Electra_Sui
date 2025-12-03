@@ -1,16 +1,21 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ShoppingCart, Shield, AlertTriangle, TrendingUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingCart, Shield, AlertTriangle, TrendingUp, MapPin, BadgeCheck, Zap, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface Listing {
   id: string;
   seller: string;
+  sellerName: string;
   amount: number;
-  price: string;
+  pricePerWh: number;
+  totalPriceSUI: number;
+  totalPriceUSDC: number;
   trustScore: number;
   isSuspicious?: boolean;
+  location: string;
+  verified: boolean;
 }
 
 interface MarketplaceFeedProps {
@@ -22,6 +27,9 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<"SUI" | "USDC">("SUI");
 
   // Initialize mock data with useState
   useEffect(() => {
@@ -29,31 +37,51 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
       {
         id: "1",
         seller: "0x742d35a3f8b2c1e9",
+        sellerName: "SolarFarm Pro",
         amount: 1500,
-        price: "0.075",
+        pricePerWh: 0.00005,
+        totalPriceSUI: 0.075,
+        totalPriceUSDC: 4.50,
         trustScore: 98,
+        location: "California, USA",
+        verified: true,
       },
       {
         id: "2",
         seller: "0x9e3f1a7c2d8b4e6f",
+        sellerName: "GreenEnergy Co",
         amount: 2200,
-        price: "0.110",
+        pricePerWh: 0.00005,
+        totalPriceSUI: 0.110,
+        totalPriceUSDC: 6.60,
         trustScore: 95,
+        location: "Texas, USA",
+        verified: true,
       },
       {
         id: "3",
         seller: "0x4b8e2f9a1c7d3e5f",
+        sellerName: "QuickPower",
         amount: 3500,
-        price: "0.168",
+        pricePerWh: 0.000048,
+        totalPriceSUI: 0.168,
+        totalPriceUSDC: 10.08,
         trustScore: 72,
         isSuspicious: true,
+        location: "Unknown",
+        verified: false,
       },
       {
         id: "4",
         seller: "0x1c9d4e7f2a8b3c6e",
+        sellerName: "EcoGrid Systems",
         amount: 1800,
-        price: "0.090",
+        pricePerWh: 0.00005,
+        totalPriceSUI: 0.090,
+        totalPriceUSDC: 5.40,
         trustScore: 99,
+        location: "New York, USA",
+        verified: true,
       },
     ]);
   }, []);
@@ -193,16 +221,22 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
           <thead>
             <tr className="border-b border-dark-border">
               <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
-                Seller Address
+                Seller
+              </th>
+              <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
+                Location
               </th>
               <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
                 Amount (Wh)
               </th>
               <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
-                Price (ETH)
+                Price (SUI)
               </th>
               <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
-                Trust Score
+                Price (USDC)
+              </th>
+              <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
+                Trust
               </th>
               <th className="text-left py-4 px-4 text-sm font-medium text-gray-400">
                 Action
@@ -228,40 +262,48 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
                 }`}
               >
                 <td className="py-4 px-4">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm">{listing.seller}</span>
-                    {listing.isSuspicious && (
-                      <div className="relative group">
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-alert/20 border border-alert/50">
-                          <AlertTriangle className="w-4 h-4 text-alert animate-pulse" />
-                          <span className="text-xs font-bold text-alert uppercase tracking-wide">
-                            Fraud Alert
-                          </span>
-                        </div>
-                        {hoveredListing === listing.id && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="absolute left-0 top-10 z-10 glass rounded-xl p-3 w-64 border border-alert/70 bg-alert/10 backdrop-blur-xl"
-                          >
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertTriangle className="w-4 h-4 text-alert" />
-                              <span className="font-bold text-alert text-sm">Anomaly Detected</span>
-                            </div>
-                            <div className="text-xs text-gray-300">
-                              Unusual meter spike pattern flagged by fraud detection
-                            </div>
-                          </motion.div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white">{listing.sellerName}</span>
+                        {listing.verified && (
+                          <BadgeCheck className="w-4 h-4 text-electric" />
                         )}
                       </div>
-                    )}
+                      {listing.isSuspicious && (
+                        <div className="relative group">
+                          <div className="flex items-center gap-1 mt-1">
+                            <AlertTriangle className="w-3 h-3 text-alert animate-pulse" />
+                            <span className="text-xs font-bold text-alert">FLAGGED</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td className="py-4 px-4">
-                  <span className="font-mono font-bold">{listing.amount.toLocaleString()}</span>
+                  <div className="flex items-center gap-1.5 text-sm text-gray-400">
+                    <MapPin className="w-3 h-3" />
+                    <span>{listing.location}</span>
+                  </div>
                 </td>
                 <td className="py-4 px-4">
-                  <span className="font-mono text-electric">{listing.price}</span>
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-electric" />
+                    <span className="font-mono font-bold">{listing.amount.toLocaleString()}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-cyber" />
+                    <span className="font-mono text-cyber font-bold">{listing.totalPriceSUI.toFixed(3)}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-4 h-4 text-electric" />
+                    <span className="font-mono text-electric font-bold">${listing.totalPriceUSDC.toFixed(2)}</span>
+                  </div>
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
@@ -274,78 +316,38 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
                           : "text-alert"
                       }`}
                     />
-                    <span className="font-mono">{listing.trustScore}%</span>
+                    <span className="font-mono font-bold">{listing.trustScore}%</span>
                   </div>
                 </td>
                 <td className="py-4 px-4">
                   <motion.button
                     onClick={() => {
                       if (!listing.isSuspicious) {
-                        setIsPurchasing(true);
-                        setPurchasingId(listing.id);
-                        setTimeout(() => {
-                          onPurchase(listing);
-                          setIsPurchasing(false);
-                          setPurchasingId(null);
-                        }, 800);
+                        setSelectedListing(listing);
+                        setShowPaymentModal(true);
                       }
                     }}
                     whileHover={!listing.isSuspicious ? { scale: 1.05 } : {}}
                     whileTap={!listing.isSuspicious ? { scale: 0.95 } : {}}
-                    animate={purchasingId === listing.id ? {
-                      x: [-2, 2, -2, 2, 0],
-                      boxShadow: [
-                        "0 0 0px rgba(0, 255, 148, 0)",
-                        "0 0 20px rgba(0, 255, 148, 0.8)",
-                        "0 0 40px rgba(0, 255, 148, 1)",
-                        "0 0 20px rgba(0, 255, 148, 0.8)",
-                        "0 0 0px rgba(0, 255, 148, 0)",
-                      ],
-                    } : {}}
-                    transition={{
-                      duration: 0.4,
-                      times: [0, 0.2, 0.5, 0.8, 1],
-                    }}
-                    disabled={listing.isSuspicious || isPurchasing}
+                    disabled={listing.isSuspicious}
                     className={`relative px-6 py-2 rounded-lg font-bold transition-colors overflow-hidden ${
                       listing.isSuspicious
                         ? "bg-alert/10 text-alert/50 border border-alert/30 cursor-not-allowed"
-                        : "bg-cyber/20 text-cyber border border-cyber/50 hover:bg-cyber/30"
+                        : "bg-gradient-to-r from-cyber to-electric text-white border border-cyber/50 hover:shadow-lg hover:shadow-cyber/50"
                     }`}
                   >
-                    {/* Electric Zap Effect */}
-                    {purchasingId === listing.id && (
-                      <>
-                        {[...Array(6)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            className="absolute inset-0 pointer-events-none"
-                            initial={{ opacity: 0 }}
-                            animate={{
-                              opacity: [0, 1, 0],
-                            }}
-                            transition={{
-                              duration: 0.15,
-                              delay: i * 0.1,
-                            }}
-                          >
-                            <svg className="absolute inset-0 w-full h-full">
-                              <motion.path
-                                d={`M ${Math.random() * 100} 0 L ${Math.random() * 100} ${Math.random() * 50} L ${Math.random() * 100} 100`}
-                                stroke="#00FF94"
-                                strokeWidth="2"
-                                fill="none"
-                                initial={{ pathLength: 0 }}
-                                animate={{ pathLength: [0, 1, 0] }}
-                                transition={{ duration: 0.2, delay: i * 0.05 }}
-                              />
-                            </svg>
-                          </motion.div>
-                        ))}
-                      </>
-                    )}
-                    <span className="relative z-10">
-                      {listing.isSuspicious ? "Flagged" : purchasingId === listing.id ? "⚡" : "Buy"}
+                    <span className="relative z-10 flex items-center gap-2">
+                      {listing.isSuspicious ? (
+                        <>
+                          <AlertTriangle className="w-4 h-4" />
+                          Flagged
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="w-4 h-4" />
+                          Buy
+                        </>
+                      )}
                     </span>
                   </motion.button>
                 </td>
@@ -356,6 +358,158 @@ export default function MarketplaceFeed({ onPurchase }: MarketplaceFeedProps) {
         </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <AnimatePresence>
+        {showPaymentModal && selectedListing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+            onClick={() => setShowPaymentModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-w-md w-full"
+            >
+              <motion.div
+                className="absolute -inset-1 bg-gradient-to-r from-cyber/40 via-electric/40 to-cyber/40 rounded-2xl opacity-50 blur-2xl"
+                animate={{ opacity: [0.3, 0.5, 0.3] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+
+              <div className="relative glass rounded-2xl p-6 border-2 border-white/10">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-cyber to-electric bg-clip-text text-transparent">
+                    Select Payment Method
+                  </h3>
+                  <p className="text-sm text-gray-400">Choose your preferred currency</p>
+                </div>
+
+                <div className="mb-6 p-4 rounded-xl bg-dark-base/50 border border-white/10">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm text-gray-400">Seller</span>
+                    <span className="text-sm font-bold text-white">{selectedListing.sellerName}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-400">Energy</span>
+                    <span className="text-sm font-bold text-electric">{selectedListing.amount.toLocaleString()} Wh</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-6">
+                  <motion.button
+                    onClick={() => setSelectedPayment("SUI")}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`w-full p-4 rounded-xl border-2 transition-all ${
+                      selectedPayment === "SUI"
+                        ? "border-cyber/50 bg-cyber/10 shadow-lg shadow-cyber/20"
+                        : "border-white/10 bg-dark-base/30 hover:border-cyber/30"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          selectedPayment === "SUI" ? "bg-cyber/20" : "bg-cyber/10"
+                        }`}>
+                          <Zap className="w-6 h-6 text-cyber" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-white">Pay with SUI</div>
+                          <div className="text-xs text-gray-400">Sui Network Token</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold font-mono text-cyber">
+                          {selectedListing.totalPriceSUI.toFixed(3)}
+                        </div>
+                        <div className="text-xs text-gray-400">SUI</div>
+                      </div>
+                    </div>
+                  </motion.button>
+
+                  <motion.button
+                    onClick={() => setSelectedPayment("USDC")}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`w-full p-4 rounded-xl border-2 transition-all ${
+                      selectedPayment === "USDC"
+                        ? "border-electric/50 bg-electric/10 shadow-lg shadow-electric/20"
+                        : "border-white/10 bg-dark-base/30 hover:border-electric/30"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          selectedPayment === "USDC" ? "bg-electric/20" : "bg-electric/10"
+                        }`}>
+                          <DollarSign className="w-6 h-6 text-electric" />
+                        </div>
+                        <div className="text-left">
+                          <div className="font-bold text-white">Pay with USDC</div>
+                          <div className="text-xs text-gray-400">USD Coin Stablecoin</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold font-mono text-electric">
+                          ${selectedListing.totalPriceUSDC.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-gray-400">USDC</div>
+                      </div>
+                    </div>
+                  </motion.button>
+                </div>
+
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={() => setShowPaymentModal(false)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-1 py-3 rounded-xl border-2 border-white/10 text-gray-400 font-bold hover:border-white/20 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={() => {
+                      setIsPurchasing(true);
+                      setPurchasingId(selectedListing.id);
+                      setShowPaymentModal(false);
+                      setTimeout(() => {
+                        onPurchase({
+                          ...selectedListing,
+                          paymentMethod: selectedPayment,
+                        } as any);
+                        setIsPurchasing(false);
+                        setPurchasingId(null);
+                        setSelectedListing(null);
+                      }, 1500);
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex-1 py-3 rounded-xl font-bold text-white relative overflow-hidden ${
+                      selectedPayment === "SUI"
+                        ? "bg-gradient-to-r from-cyber/80 to-blue-500/80"
+                        : "bg-gradient-to-r from-electric/80 to-cyan-400/80"
+                    }`}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                      animate={{ x: ["-100%", "200%"] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    />
+                    <span className="relative z-10">Confirm Purchase</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

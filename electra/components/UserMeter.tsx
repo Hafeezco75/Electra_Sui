@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Activity, TrendingUp, Hash } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Activity, TrendingUp, Hash, Rocket, Sparkles, Check } from "lucide-react";
 
 export default function UserMeter() {
   const [unusedTokens, setUnusedTokens] = useState("");
   const [isListing, setIsListing] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const meterData = {
     id: "0x8f3c2a1b9e7d6c5a4f3e2d1c0b9a8f7e6d5c4b3a",
@@ -21,13 +22,136 @@ export default function UserMeter() {
 
   const handleListTokens = async () => {
     setIsListing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     setIsListing(false);
-    setUnusedTokens("");
+    setShowSuccess(true);
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+      setUnusedTokens("");
+    }, 3000);
   };
 
   return (
     <div className="relative">
+      {/* Listing Success Animation */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50"
+          >
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Confetti */}
+              {[...Array(50)].map((_, i) => (
+                <motion.div
+                  key={`confetti-${i}`}
+                  className="absolute w-3 h-3 rounded-sm"
+                  style={{
+                    left: "50%",
+                    top: "20%",
+                    backgroundColor: ["#00FF94", "#2979FF", "#00D9FF", "#FFD700"][i % 4],
+                  }}
+                  animate={{
+                    x: (Math.random() - 0.5) * 800,
+                    y: [0, 600],
+                    rotate: Math.random() * 720,
+                    opacity: [0, 1, 1, 0],
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    delay: i * 0.02,
+                    ease: "easeOut",
+                  }}
+                />
+              ))}
+
+              {/* Rocket Launch */}
+              <motion.div
+                className="absolute left-1/2 -translate-x-1/2 bottom-1/3"
+                initial={{ y: 0, x: 0, rotate: 0, scale: 1 }}
+                animate={{
+                  y: [-20, -400],
+                  x: [0, 150],
+                  rotate: [0, 20],
+                  scale: [1.5, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  ease: [0.34, 1.56, 0.64, 1],
+                }}
+              >
+                <Rocket className="w-24 h-24 text-electric" />
+              </motion.div>
+
+              {/* Success Message */}
+              <motion.div
+                className="relative z-10 text-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                <motion.div
+                  className="w-24 h-24 rounded-full bg-electric/20 border-4 border-electric flex items-center justify-center mx-auto mb-6"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ delay: 0.7, type: "spring", bounce: 0.6 }}
+                >
+                  <Check className="w-12 h-12 text-electric" />
+                </motion.div>
+                
+                <motion.h2
+                  className="text-5xl font-bold mb-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 }}
+                >
+                  <span className="bg-gradient-to-r from-electric via-cyan-400 to-electric bg-clip-text text-transparent">
+                    Listed Successfully!
+                  </span>
+                </motion.h2>
+                
+                <motion.p
+                  className="text-2xl text-gray-400 font-mono"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.1 }}
+                >
+                  {unusedTokens} Wh now on marketplace
+                </motion.p>
+
+                {/* Sparkles */}
+                {[...Array(8)].map((_, i) => (
+                  <motion.div
+                    key={`sparkle-${i}`}
+                    className="absolute"
+                    style={{
+                      left: `${50 + Math.cos((i * 45) * Math.PI / 180) * 100}%`,
+                      top: `${50 + Math.sin((i * 45) * Math.PI / 180) * 100}%`,
+                    }}
+                    animate={{
+                      scale: [0, 1.5, 0],
+                      rotate: [0, 180, 360],
+                      opacity: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      delay: 1 + i * 0.1,
+                      repeat: Infinity,
+                    }}
+                  >
+                    <Sparkles className="w-6 h-6 text-electric" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Futuristic Container */}
       <div className="relative rounded-3xl overflow-hidden border-2 border-electric/30 bg-gradient-to-br from-dark-card via-dark-base to-dark-card">
         {/* Animated Grid Background */}
