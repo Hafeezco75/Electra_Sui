@@ -12,6 +12,7 @@ use sui::object::{uid_to_inner};
 use sui::dynamic_object_field as dof;
 use sui::table::{Table, add, borrow_mut};
 use sui::ed25519::ed25519_verify;
+use electras::oracles;
 
 public struct ELECTRICITY has key, store {
     id: UID,
@@ -21,6 +22,7 @@ const EInvalidAttestation: u64 = 1;
 const EAmountIncorrect: u64 = 2;
 const ENotProducer: u64 = 3;
 const EUserAlreadyRegistered: u64 = 4;
+const ENotEnoughUnits: u64 = 5;
 
 /// A receipt for redeemed electricity
 public struct ElectricityReceipt has key, store {
@@ -87,8 +89,8 @@ public struct Listing has key, store {
 public struct Marketplace<phantom SUI> has store {
     items: Table<ID, Listing>,
     seller_address: address,
-    token_quantity: u64,
-    price_per_token: u64,
+    energy_quantity: u64,
+    energy_units_price: u64,
     expiry_time: u64,
     payments: Table<address, Coin<SUI>>,
 }
@@ -166,10 +168,10 @@ public fun register_user(registry: &mut MeterRegistry, meter_id: string::String,
     table::add(&mut registry.receipts, key, receipt);
 }
 
-public fun init_registry(initial_energy_units: u64, ctx: &mut TxContext): MeterRegistry {
+public fun init_registry(ctx: &mut TxContext): MeterRegistry {
     MeterRegistry {
         id: object::new(ctx),
-        initial_energy_units,
+        initial_energy_units: oracles::default_user_watts_wh(),
         total_users: 0,
         owner: ctx.sender(),
         receipts: table::new(ctx),
@@ -177,9 +179,29 @@ public fun init_registry(initial_energy_units: u64, ctx: &mut TxContext): MeterR
     }
 }
 
-public fun set_initial_energy_units(registry: &mut MeterRegistry, new_units: u64, ctx: &TxContext) {
+public fun init_producer_registry(ctx: &mut TxContext): ProducerRegistry {
+    ProducerRegistry {
+        id: object::new(ctx),
+        producers: table::new(ctx),
+    }
+}
+
+public fun register_producer(reg: &mut ProducerRegistry, ctx: &mut TxContext) {
+    assert!(!table::contains(&reg.producers, ctx.sender()), EUserAlreadyRegistered);
+    table::add(&mut reg.producers, ctx.sender(), true);
+}
+
+public fun init_attestation_registry(attester: &ProducerRegistry, ctx: &mut TxContext): AttestationRegistry {
+    assert!(is_producer(attester, ctx.sender(), ctx), ENotProducer);
+    AttestationRegistry {
+        id: object::new(ctx),
+        attestations: table::new(ctx),
+    }
+}
+
+public fun set_initial_energy_units(registry: &mut MeterRegistry, ctx: &TxContext) {
     assert!(registry.owner == ctx.sender(), ENotProducer); 
-    registry.initial_energy_units = new_units;
+    registry.initial_energy_units = oracles::default_user_watts_wh();
 }
 
 /// Top up a user's energy units (only producer can call)
@@ -277,7 +299,11 @@ public fun mint_by_attestation(registry: &mut AttestationRegistry, producer_regi
     event::emit(ProductionEvent {producer: sender, attestation_hash, kwh, timestamp});
 }
 
-public fun list_tokens<T: key + store>(marketplace: &mut Marketplace<SUI>, list_item: T, token: UID, quantity: u64, price: u64, seller: address, ctx: &mut TxContext) {
+public fun list_tokens<T: key + store>(registry: &mut MeterRegistry, marketplace: &mut Marketplace<SUI>, list_item: T, token: UID, quantity: u64, price: u64, seller: address, ctx: &mut TxContext) {
+    let user_meter = table::borrow_mut(&mut registry.user_meters, registry.initial_energy_units);
+    assert!(registry.initial_energy_units >= quantity, ENotEnoughUnits);
+    registry.initial_energy_units = registry.initial_energy_units - quantity;
+
     let mut listing = Listing {
         id: object::new(ctx),
         price: price,
@@ -335,6 +361,7 @@ public fun transfer_energy(sender_meter: &mut MeterRegistry, recipient_meter: &m
     assert!(sender_meter.initial_energy_units >= amount, 1); // Sufficient balance
 
     sender_meter.initial_energy_units = sender_meter.initial_energy_units - amount;
+    let recipient_units = table::borrow_mut(&mut recipient_meter.user_meters, (recipient_meter.initial_energy_units));
     recipient_meter.initial_energy_units = recipient_meter.initial_energy_units + amount;
 }
 
