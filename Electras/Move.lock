@@ -2,18 +2,19 @@
 
 [move]
 version = 3
-manifest_digest = "6D01AAFE180842A7D917732E5A406F447732A2E36160C97E019FC6420D00A731"
-deps_digest = "F9B494B64F0615AED0E98FC12A85B85ECD2BC5185C22D30E7F67786BB52E507C"
+manifest_digest = "E8F2FA15BD21B89BD95FAEE9BFB67470C13A10FC9D8F6DF175BEC8423BA5C1EC"
+deps_digest = "397E6A9F7A624706DBDFEE056CE88391A15876868FD18A88504DA74EB458D697"
 dependencies = [
   { id = "Bridge", name = "Bridge" },
   { id = "MoveStdlib", name = "MoveStdlib" },
   { id = "Sui", name = "Sui" },
   { id = "SuiSystem", name = "SuiSystem" },
+  { id = "stork", name = "stork" },
 ]
 
 [[move.package]]
 id = "Bridge"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "9a4d4016ba66c646c76c4b8d54fa9e767f240ab1", subdir = "crates/sui-framework/packages/bridge" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "c1f1ae650fb9f9248b39a569400b4420820868db", subdir = "crates/sui-framework/packages/bridge" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
@@ -23,11 +24,11 @@ dependencies = [
 
 [[move.package]]
 id = "MoveStdlib"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "9a4d4016ba66c646c76c4b8d54fa9e767f240ab1", subdir = "crates/sui-framework/packages/move-stdlib" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "c1f1ae650fb9f9248b39a569400b4420820868db", subdir = "crates/sui-framework/packages/move-stdlib" }
 
 [[move.package]]
 id = "Sui"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "9a4d4016ba66c646c76c4b8d54fa9e767f240ab1", subdir = "crates/sui-framework/packages/sui-framework" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "c1f1ae650fb9f9248b39a569400b4420820868db", subdir = "crates/sui-framework/packages/sui-framework" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
@@ -35,22 +36,30 @@ dependencies = [
 
 [[move.package]]
 id = "SuiSystem"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "9a4d4016ba66c646c76c4b8d54fa9e767f240ab1", subdir = "crates/sui-framework/packages/sui-system" }
+source = { git = "https://github.com/MystenLabs/sui.git", rev = "c1f1ae650fb9f9248b39a569400b4420820868db", subdir = "crates/sui-framework/packages/sui-system" }
 
 dependencies = [
   { id = "MoveStdlib", name = "MoveStdlib" },
   { id = "Sui", name = "Sui" },
 ]
 
+[[move.package]]
+id = "stork"
+source = { git = "https://github.com/stork-oracle/stork-external.git", rev = "main", subdir = "chains/sui/contracts" }
+
+dependencies = [
+  { id = "Sui", name = "Sui" },
+]
+
 [move.toolchain-version]
-compiler-version = "1.51.4"
+compiler-version = "1.61.2"
 edition = "2024.beta"
 flavor = "sui"
 
 [env]
 
-[env.mainnet]
-chain-id = "35834a8a"
-original-published-id = "0xc8267e8c41589ef8fe3bb9fccac1a091b5b3b5b1a3787e83bc9ce1c684d61bc5"
-latest-published-id = "0xc8267e8c41589ef8fe3bb9fccac1a091b5b3b5b1a3787e83bc9ce1c684d61bc5"
+[env.testnet]
+chain-id = "4c78adac"
+original-published-id = "0xf52a8b7c28ccb89986f14d5940bca64cadf6639ae5e861ea6722e137497fef20"
+latest-published-id = "0xf52a8b7c28ccb89986f14d5940bca64cadf6639ae5e861ea6722e137497fef20"
 published-version = "1"
